@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YVS.Subha - SDET · Python · Playwright</title>
+<meta name="description" content="SDET with ~4 years testing credit-bureau data systems at 900M+ record scale. Python, Playwright, pytest, API automation.">
+<meta property="og:title" content="YVS.Subha - SDET · Python · Playwright">
+<meta property="og:description" content="I break software on purpose - at 900M-record scale. Test automation for credit-bureau data systems processing 70M+ records/day.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ysubha.github.io">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b1120;          /* terminal base */
+  --ink-2:#111a2e;
+  --paper:#f6f7f4;        /* report base */
+  --paper-2:#ffffff;
+  --line:#dde1d9;
+  --text:#1c2333;
+  --dim:#5b6472;
+  --pass:#2f9e6e;         /* pytest green, desaturated */
+  --pass-bright:#4cd894;
+  --fail:#d1584a;
+  --flag:#d99a2b;
+  --blue:#3d6fd9;
+  --mono:'IBM Plex Mono',monospace;
+  --disp:'Space Grotesk',sans-serif;
+  --body:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--text);background:var(--paper);line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* ---------- terminal hero ---------- */
+.hero{background:var(--ink);color:#dbe3ef;padding:0 0 72px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(0deg,transparent 0 2px,rgba(255,255,255,.012) 2px 4px);pointer-events:none}
+.hnav{max-width:1060px;margin:0 auto;padding:26px 24px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.hnav .id{font-family:var(--mono);font-size:13px;color:#7d8aa3}
+.hnav .id b{color:var(--pass-bright);font-weight:600}
+.hnav nav{display:flex;gap:22px;flex-wrap:wrap}
+.hnav nav a{font-family:var(--mono);font-size:12.5px;color:#8c99b3;text-decoration:none;letter-spacing:.02em}
+.hnav nav a:hover,.hnav nav a:focus-visible{color:#fff}
+.hero-in{max-width:1060px;margin:0 auto;padding:38px 24px 0;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+@media(max-width:880px){.hero-in{grid-template-columns:1fr;gap:36px}}
+.hero h1{font-family:var(--disp);font-weight:700;font-size:clamp(34px,4.6vw,52px);line-height:1.06;letter-spacing:-0.02em;color:#f2f5fa}
+.hero h1 .g{color:var(--pass-bright)}
+.hero .lede{margin-top:18px;font-size:16.5px;color:#a7b2c7;max-width:46ch}
+.hero .lede b{color:#e8edf6;font-weight:600}
+.hero .cta{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
+.btn{font-family:var(--mono);font-size:13px;text-decoration:none;padding:12px 20px;border-radius:8px;display:inline-block;transition:.18s}
+.btn.solid{background:var(--pass);color:#04120b;font-weight:600}
+.btn.solid:hover{background:var(--pass-bright);transform:translateY(-1px)}
+.btn.ghost{border:1px solid #33405c;color:#c6cfdf}
+.btn.ghost:hover{border-color:#5b6a8c;color:#fff}
+
+/* terminal window */
+.term{background:#070b16;border:1px solid #1e2a44;border-radius:12px;box-shadow:0 30px 70px -30px rgba(0,0,0,.85);font-family:var(--mono);font-size:12.8px;line-height:1.85}
+.term .tbar{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid #1e2a44}
+.term .tbar i{width:10px;height:10px;border-radius:50%;display:block}
+.term .tbar i:nth-child(1){background:#e0564b}.term .tbar i:nth-child(2){background:#dfa63f}.term .tbar i:nth-child(3){background:#43b06a}
+.term .tbar span{margin-left:8px;font-size:11px;color:#5f6d89}
+.term .tbody{padding:16px 18px 18px;min-height:298px}
+.tl{opacity:0;transform:translateY(3px);animation:tin .3s forwards;white-space:pre-wrap;word-break:break-word;color:#93a0ba}
+@keyframes tin{to{opacity:1;transform:none}}
+.tl .p{color:var(--pass-bright);font-weight:600}
+.tl .h{color:#e8edf6}
+.tl .d{color:#5f6d89}
+.tl .k{color:#7fa3f0}
+.tl.sum{color:#04120b;background:linear-gradient(90deg,var(--pass),var(--pass-bright));border-radius:6px;padding:2px 10px;font-weight:600;margin-top:10px;display:inline-block}
+@media (prefers-reduced-motion:reduce){.tl{animation:none;opacity:1;transform:none}}
+
+/* ---------- shared section chrome ---------- */
+section{padding:78px 0}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--pass);font-weight:600}
+h2{font-family:var(--disp);font-weight:700;font-size:clamp(26px,3.2vw,36px);letter-spacing:-0.02em;margin:10px 0 8px}
+.sub{color:var(--dim);max-width:62ch}
+
+/* ---------- scale strip ---------- */
+.scale{background:var(--paper-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:34px 0}
+.scale .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:760px){.scale .wrap{grid-template-columns:repeat(2,1fr)}}
+.stat .n{font-family:var(--disp);font-weight:700;font-size:clamp(26px,3vw,34px);letter-spacing:-0.02em}
+.stat .n em{font-style:normal;color:var(--pass)}
+.stat .l{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:4px;letter-spacing:.03em}
+
+/* ---------- what I test (suite breakdown) ---------- */
+.suite{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start;margin-top:38px}
+@media(max-width:840px){.suite{grid-template-columns:1fr}}
+.srow{display:grid;grid-template-columns:150px 1fr 64px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12.5px}
+.srow .nm{color:var(--text);font-weight:500}
+.srow .bar{height:7px;background:#e8ebe4;border-radius:5px;overflow:hidden}
+.srow .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--pass),var(--pass-bright));border-radius:5px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.srow .ct{text-align:right;color:var(--dim)}
+.prose p{margin-bottom:16px;color:#39424f}
+.prose p b{color:var(--text)}
+
+/* ---------- projects ---------- */
+.proj-sec{background:var(--ink);color:#dbe3ef}
+.proj-sec .eyebrow{color:var(--pass-bright)}
+.proj-sec h2{color:#f2f5fa}
+.proj-sec .sub{color:#8c99b3}
+.projects{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:40px}
+@media(max-width:840px){.projects{grid-template-columns:1fr}}
+.pcard{background:var(--ink-2);border:1px solid #22304e;border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:14px;transition:.2s}
+.pcard:hover{border-color:#3a4c74;transform:translateY(-3px)}
+.pcard .ci{font-family:var(--mono);font-size:11px;color:#04120b;background:var(--pass-bright);padding:3px 10px;border-radius:5px;font-weight:600;width:fit-content}
+.pcard .cibadge{width:fit-content;border-radius:4px}
+.pcard h3{font-family:var(--disp);font-size:20px;font-weight:600;color:#f2f5fa}
+.pcard p{font-size:14.5px;color:#a0abc1}
+.pcard .tags{display:flex;gap:7px;flex-wrap:wrap}
+.pcard .tags span{font-family:var(--mono);font-size:11px;color:#8c99b3;border:1px solid #2a3a5e;padding:3px 9px;border-radius:999px}
+.pcard a.go{font-family:var(--mono);font-size:12.5px;color:var(--pass-bright);text-decoration:none;margin-top:auto}
+.pcard a.go:hover{text-decoration:underline}
+
+/* ---------- production stories ---------- */
+.stories{margin-top:40px;display:flex;flex-direction:column;gap:0}
+.story{display:grid;grid-template-columns:190px 1fr;gap:26px;padding:28px 0;border-top:1px solid var(--line)}
+.story:last-child{border-bottom:1px solid var(--line)}
+@media(max-width:700px){.story{grid-template-columns:1fr;gap:8px}}
+.story .tag{font-family:var(--mono);font-size:11.5px;color:var(--fail);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.story .tag.ok{color:var(--pass)}
+.story h3{font-family:var(--disp);font-size:19px;font-weight:600;margin-bottom:6px}
+.story p{font-size:14.5px;color:#454e5c;max-width:66ch}
+.story p b{color:var(--text)}
+.story .res{font-family:var(--mono);font-size:12px;color:var(--pass);margin-top:8px;font-weight:500}
+
+/* ---------- stack ---------- */
+.stackgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:38px}
+@media(max-width:760px){.stackgrid{grid-template-columns:1fr}}
+.sg{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:22px}
+.sg h4{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.sg ul{list-style:none}
+.sg li{font-size:14px;padding:5px 0;color:#39424f}
+.sg li::before{content:"✓ ";color:var(--pass);font-weight:700;font-family:var(--mono)}
+.learning li::before{content:"→ ";color:var(--flag)}
+.learning{border-style:dashed}
+
+/* ---------- footer / contact ---------- */
+.contact{background:var(--ink);color:#dbe3ef;text-align:center}
+.contact h2{color:#f2f5fa}
+.contact .sub{margin:0 auto}
+.contact .cta{margin-top:30px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.foot{background:#070b16;padding:22px 0;font-family:var(--mono);font-size:11.5px;color:#5f6d89;text-align:center}
+.foot span{color:var(--pass-bright)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--pass-bright);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="hnav">
+    <div class="id">~/<b>subha</b> $ whoami</div>
+    <nav>
+      <a href="#work">work</a>
+      <a href="#projects">projects</a>
+      <a href="#principles">principles</a>
+      <a href="#incidents">incidents</a>
+      <a href="#stack">stack</a>
+      <a href="#contact">contact</a>
+    </nav>
+  </div>
+  <div class="hero-in">
+    <div>
+      <h1>I break software<br>on purpose - <span class="g">at 900M-record scale.</span></h1>
+      <p class="lede">I'm <b>Yelchuri Venkata Sai Subha</b>, an SDET at <b>TransUnion CIBIL</b>. For ~4 years I've owned test automation for credit-bureau data systems that process <b>70M+ records a day</b> under RBI compliance - where a wrong digit isn't a bug ticket, it's someone's credit score.</p>
+      <div class="cta">
+        <a class="btn solid" href="resume.pdf" download="YVS-Subha-SDET-Resume.pdf">⬇ resume.pdf</a>
+        <a class="btn ghost" href="https://github.com/ysubha" target="_blank" rel="noopener">github.com/ysubha</a>
+        <a class="btn ghost" href="https://linkedin.com/in/yvs-subha" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+    <div class="term" aria-label="Simulated pytest session summarizing credentials">
+      <div class="tbar"><i></i><i></i><i></i><span>pytest - profile_test_suite</span></div>
+      <div class="tbody" id="termBody"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ SCALE STRIP ============ -->
+<div class="scale">
+  <div class="wrap">
+    <div class="stat"><div class="n"><em>2,000+</em></div><div class="l">automated tests owned</div></div>
+    <div class="stat"><div class="n"><em>900M+</em></div><div class="l">consumer records covered</div></div>
+    <div class="stat"><div class="n"><em>70M</em>/day</div><div class="l">ingestion throughput tested</div></div>
+    <div class="stat"><div class="n"><em>0</em></div><div class="l">critical defects post-release, flagship fix</div></div>
+  </div>
+</div>
+
+<!-- ============ WORK ============ -->
+<section id="work">
+  <div class="wrap">
+    <span class="eyebrow">The day job</span>
+    <h2>Functional QA lead on India's credit bureau data pipeline</h2>
+    <div class="suite">
+      <div class="prose">
+        <p>At TransUnion CIBIL I lead functional QA in a 3-member team. Our suite validates everything from REST APIs to record-level baseline comparisons through Jenkins-driven ingestion pipelines - the plumbing that decides whether 900M+ consumer records stay correct.</p>
+        <p>My layer of the stack: <b>Python + Playwright + pytest</b> for UI and E2E, <b>requests</b> for API automation, <b>PostgreSQL</b> for data validation, and <b>Ab Initio ETL</b> pipelines under the hood. All of it in a regulated environment where "it mostly works" is not an acceptable test result.</p>
+        <p>What I care about isn't test count - it's <b>failure patterns</b>. The most valuable thing I do is read audit logs and data the way an attacker reads code: looking for the ten ways something can go quietly wrong before it goes loudly wrong.</p>
+      </div>
+      <div>
+        <div class="srow"><span class="nm">Jenkins - Data ingestion</span><div class="bar"><i data-w="100"></i></div><span class="ct">1,100</span></div>
+        <div class="srow"><span class="nm">API Automation</span><div class="bar"><i data-w="82"></i></div><span class="ct">900</span></div>
+        <div class="srow"><span class="nm">UI Automation</span><div class="bar"><i data-w="5"></i></div><span class="ct">50</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROJECTS ============ -->
+<section class="proj-sec" id="projects">
+  <div class="wrap">
+    <span class="eyebrow">Open source</span>
+    <h2>Frameworks I built from zero - with CI to prove it</h2>
+    <p class="sub">Corporate code stays corporate. So I built my own frameworks on GitHub, wired to GitHub Actions, where every push runs the full suite in public.</p>
+    <div class="projects">
+      <div class="pcard">
+        <img class="cibadge" src="https://img.shields.io/github/actions/workflow/status/ysubha/E-commerce-UI-Test-Framework/ci.yml?label=CI%20%C2%B7%20GitHub%20Actions&style=flat-square" alt="Live CI status for E-commerce UI Test Framework" height="20" loading="lazy">
+        <h3>E-commerce UI Test Framework</h3>
+        <p>45 Playwright tests with a strict Page Object Model discipline - pages own actions, tests own assertions. Parallelized with pytest-xdist, reported with Allure, data faked with Faker.</p>
+        <div class="tags"><span>Playwright</span><span>pytest</span><span>POM</span><span>pytest-xdist</span><span>Allure</span></div>
+        <a class="go" href="https://github.com/ysubha/E-commerce-UI-Test-Framework" target="_blank" rel="noopener">→ view repo &amp; passing pipeline</a>
+      </div>
+      <div class="pcard">
+        <img class="cibadge" src="https://img.shields.io/github/actions/workflow/status/ysubha/mini-fintech-system/ci.yml?label=CI%20%C2%B7%20GitHub%20Actions&style=flat-square" alt="Live CI status for Fintech Payment API Test Suite" height="20" loading="lazy">
+        <h3>Fintech Payment API Test Suite</h3>
+        <p>A mini payment system built to be tested: 61 tests (25 unit / 35 integration / 1 E2E) covering idempotency, schema contracts, and mocked failure modes with unittest.mock and jsonschema.</p>
+        <div class="tags"><span>Flask</span><span>pytest</span><span>unittest.mock</span><span>jsonschema</span><span>idempotency</span></div>
+        <a class="go" href="https://github.com/ysubha/mini-fintech-system" target="_blank" rel="noopener">→ view repo &amp; passing pipeline</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRINCIPLES ============ -->
+<section id="principles" style="padding-bottom:0">
+  <div class="wrap">
+    <span class="eyebrow">How I think about testing</span>
+    <h2>Three principles I actually work by</h2>
+    <div class="stackgrid" style="margin-top:34px">
+      <div class="sg">
+        <h4>01 · Failure patterns &gt; test counts</h4>
+        <p style="font-size:14px;color:#39424f">A suite of 2,000 tests is only as good as the failure modes it was designed around. I start from audit logs and production data - the ten ways something goes quietly wrong - and work backwards to test cases.</p>
+      </div>
+      <div class="sg">
+        <h4>02 · The cheapest bug is the one never built</h4>
+        <p style="font-size:14px;color:#39424f">My best catch wasn't automated at all: a design flaw spotted at 75% build, on domain knowledge. Automation scales judgment - it doesn't replace it. Shift-left means being in the design review, not just the pipeline.</p>
+      </div>
+      <div class="sg">
+        <h4>03 · A test I can't defend is a test I delete</h4>
+        <p style="font-size:14px;color:#39424f">Every assertion should answer "what production failure does this prevent?" If it can't, it's maintenance debt wearing a green checkmark. Same rule I apply to my resume: every claim must survive drilling.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INCIDENTS ============ -->
+<section id="incidents">
+  <div class="wrap">
+    <span class="eyebrow">Production stories</span>
+    <h2>Incidents I've been trusted with</h2>
+    <p class="sub">Testing at bureau scale means the interesting work happens when something breaks. These are real incidents, told the way I'd defend them in a room.</p>
+    <div class="stories">
+      <div class="story">
+        <span class="tag">SEV · Data corruption</span>
+        <div>
+          <h3>400K corrupted payment records</h3>
+          <p>Payment data corruption hit 400K records in production. Working alongside dev on root cause, <b>I identified ten distinct corruption patterns</b> from the audit logs, translated them into 100 targeted test cases, and validated the fix end to end.</p>
+          <div class="res">✓ shipped in 5 days · 0 critical defects post-release</div>
+        </div>
+      </div>
+      <div class="story">
+        <span class="tag ok">Migration</span>
+        <div>
+          <h3>Informix → PostgreSQL, 700M+ records</h3>
+          <p>Owned test coverage across a full database engine migration. Ran <b>6 pre-production validation cycles covering 600M records</b> before cutover.</p>
+          <div class="res">✓ zero rollback</div>
+        </div>
+      </div>
+      <div class="story">
+        <span class="tag">SEV · Data integrity</span>
+        <div>
+          <h3>Serial number duplication</h3>
+          <p>~2,000 records/day were silently duplicating serial numbers. Designed <b>55 test cases</b> around the duplication surface and drove verification through a ~1.5-month fix cycle.</p>
+          <div class="res">✓ duplication eliminated at source</div>
+        </div>
+      </div>
+      <div class="story">
+        <span class="tag ok">Shift-left catch</span>
+        <div>
+          <h3>Design flaw caught at 75% build</h3>
+          <p>Spotted a fundamental design flaw in a data format feature on <b>domain knowledge alone</b> - before it ever reached production. Feature was disabled with zero production exposure.</p>
+          <div class="res">✓ 0 customer impact · caught pre-release</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STACK ============ -->
+<section id="stack" style="padding-top:0">
+  <div class="wrap">
+    <span class="eyebrow">Toolbox</span>
+    <h2>Stack - shipped vs. sharpening</h2>
+    <div class="stackgrid">
+      <div class="sg">
+        <h4>Automation core</h4>
+        <ul>
+          <li>Python</li>
+          <li>Playwright (Python)</li>
+          <li>pytest · fixtures · hooks</li>
+          <li>REST API (requests)</li>
+          <li>unittest.mock · jsonschema</li>
+        </ul>
+      </div>
+      <div class="sg">
+        <h4>Data &amp; pipeline</h4>
+        <ul>
+          <li>SQL · PostgreSQL · MySQL</li>
+          <li>Ab Initio ETL</li>
+          <li>Jenkins</li>
+          <li>GitHub Actions</li>
+          <li>BDD / Cucumber · Git</li>
+        </ul>
+      </div>
+      <div class="sg learning">
+        <h4>Actively sharpening</h4>
+        <ul>
+          <li>System design for test architecture</li>
+          <li>AI-assisted QA workflows</li>
+          <li>GitHub Actions - advanced pipelines</li>
+          <li>Performance &amp; contract testing</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="contact" id="contact">
+  <div class="wrap">
+    <span class="eyebrow">assert response is not None</span>
+    <h2>Let's talk quality.</h2>
+    <p class="sub">Open to SDET-2 / Senior SDET roles - fintech, banking, and credit-bureau domains especially. B.Tech CS, KIIT University '22, CGPA 9.16.</p>
+    <div class="cta">
+      <a class="btn solid" href="resume.pdf" download="YVS-Subha-SDET-Resume.pdf">⬇ Download resume</a>
+      <a class="btn ghost" href="https://linkedin.com/in/yvs-subha" target="_blank" rel="noopener">Connect on LinkedIn</a>
+      <a class="btn ghost" href="https://github.com/ysubha" target="_blank" rel="noopener">Read my code</a>
+    </div>
+  </div>
+</section>
+
+<div class="foot">========= <span>1 candidate passed</span> in 4.0 years ========= · Yelchuri Venkata Sai Subha · Pune, India</div>
+
+<script>
+/* typed pytest hero */
+const LINES=[
+  {t:'<span class="d">$</span> <span class="h">pytest</span> profile/ <span class="k">-v</span>',d:0},
+  {t:'<span class="d">collected 6 items</span>',d:500},
+  {t:'test_owns_2000_plus_test_suite <span class="p">PASSED</span>',d:950},
+  {t:'test_validates_900M_record_systems <span class="p">PASSED</span>',d:1350},
+  {t:'test_python_playwright_pytest_stack <span class="p">PASSED</span>',d:1750},
+  {t:'test_led_400K_incident_to_zero_defects <span class="p">PASSED</span>',d:2150},
+  {t:'test_ships_ci_backed_github_projects <span class="p">PASSED</span>',d:2550},
+  {t:'test_still_learning_every_week <span class="p">PASSED</span>',d:2950},
+  {t:'6 passed in 3.7s - hire accordingly',d:3500,cls:'sum'},
+];
+const tb=document.getElementById('termBody');
+LINES.forEach(l=>{
+  const div=document.createElement('div');
+  div.className='tl'+(l.cls?' '+l.cls:'');
+  div.style.animationDelay=l.d+'ms';
+  div.innerHTML=l.t;
+  tb.appendChild(div);
+});
+
+/* suite bars animate on scroll */
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){ e.target.style.width=e.target.dataset.w+'%'; io.unobserve(e.target);} });
+},{threshold:.4});
+document.querySelectorAll('.srow .bar i').forEach(b=>io.observe(b));
+</script>
+</body>
+</html>
